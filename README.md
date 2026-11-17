@@ -35,4 +35,4 @@ Task 4 works on a copy in `output/`. Results go to `output/`, and
 
 Record here what you used an assistant for, and for what:
 
-- Claude (Anthropic): drafted the SQL in sql/, checking and corrections, and help understanding the semantics. Predictions and explanations are my own.
+- Claude (Anthropic): support with writing and checking the SQL in sql/, and with understanding the semantics. Predictions and explanations are my own.
