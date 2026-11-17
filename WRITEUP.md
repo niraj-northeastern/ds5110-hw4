@@ -90,7 +90,7 @@ DB size: 3,629,056 → 6,168,576 bytes (+2,539,520 bytes for both indexes). Timi
 ### Explanation
 I chose ratings(movie_id, rating) for B and ratings(timestamp) for C and the D rewrite.
 
-A_profile: Already uses SQLite’s automatic index on user_id, so the new indexes do not improve its lookup. USE TEMP B-TREE FOR ORDER BY means SQLite must additionally sort the matching rows by timestamp.
+A_profile: Already uses SQLite’s automatic primary-key index on (user_id, movie_id), which starts with user_id, so the new indexes do not improve its lookup. USE TEMP B-TREE FOR ORDER BY means SQLite must additionally sort the matching rows by timestamp.
 B_movie_page: Changes from a table scan to a covering-index search.
 C_recent: Changes from a scan to an indexed timestamp range search.
 D_month: Remains a scan because strftime() transforms the indexed column, preventing a direct range search.
@@ -103,6 +103,6 @@ Considering D_rewrite does not change the index choice because the timestamp ind
 ## T5. Recommendation (120–200 words)
 I recommend adding the ratings(movie_id, rating) and ratings(timestamp) indexes. The first improves movie-page queries by allowing SQLite to find ratings for a specific movie directly instead of scanning the full ratings table. The second improves recent-rating queries and the rewritten monthly query by allowing SQLite to search a timestamp range efficiently.
 
-I would not add another index for A_profile. SQLite already uses an automatic index on user_id, so the two available indexes are better used for queries that otherwise require full scans. I would also rewrite D_month to use timestamp >= ? AND timestamp < ?, since applying strftime() to the timestamp prevents SQLite from performing an index search.
+I would not add another index for A_profile. SQLite already uses the automatic primary-key index, which starts with user_id, so the two available indexes are better used for queries that otherwise require full scans. I would also rewrite D_month to use timestamp >= ? AND timestamp < ?, since applying strftime() to the timestamp prevents SQLite from performing an index search.
 
 The T4 plans confirm these improvements: B and C change from SCAN to SEARCH, and the rewritten D query also uses SEARCH. The main trade-off is storage: the indexes add 2,539,520 bytes, increasing the database from about 3.63 MB to 6.17 MB. They may also slightly slow inserts and updates because SQLite must maintain both indexes.
